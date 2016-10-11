@@ -101,7 +101,11 @@ module "worker-three" {
 }
 
 output "master_ip" {
-  value = "${module.master.public_ip}"
+  value = "export MASTER_IP=${module.master.public_ip}"
 }
-  
+
+output "worker_one_ip" {
+  value = "export WORKER_ONE_IP=${module.worker-one.private_ip}"
+}
+
 
