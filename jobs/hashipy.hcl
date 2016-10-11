@@ -5,12 +5,12 @@ job "hashipy" {
   type = "service"
 
   update {
-    stagger = "30s"
+    stagger = "5s"
     max_parallel = 1
   }
 
   group "web" {
-    count = 3
+    count = 5
 
     task "frontend" {
       driver = "exec"
@@ -22,7 +22,7 @@ job "hashipy" {
         source = "https://gist.githubusercontent.com/abhayashenoy/9b51dcf512ede0f68f846658fb3147de/raw/426614556f2a31111732cddc682e225b55c57759/server.py"
       }
       env {
-        NODE_NAME = "${node.unique.name}"
+        NODE_NAME = "${NOMAD_ALLOC_INDEX}"
         SERVER_PORT = "${NOMAD_PORT_http}"
       }
       service {
