@@ -3,8 +3,9 @@ while getopts "qs" opt; do
     s)
       echo "Starting tunnel"
       ssh                             \
-        -L 8500:localhost:8500        \
+        -L 8200:localhost:8200        \
         -L 8400:localhost:8400        \
+        -L 8500:localhost:8500        \
         -L 4646:localhost:4646        \
         -L 9999:$WORKER_ONE_IP:9999   \
         -i ~/misc/keys/abhaya-aws.pem \
