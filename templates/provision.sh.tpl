@@ -30,20 +30,15 @@ function download_hashitools {
   fi
 }
 
-function start_consul {
+function start {
   systemctl daemon-reload
-  pgrep consul && systemctl stop consul
-  pgrep consul || systemctl start consul
-}
-
-function start_nomad {
-  systemctl daemon-reload
-  pgrep nomad && systemctl stop nomad
-  pgrep nomad || systemctl start nomad
+  pgrep $1 && systemctl stop $1
+  pgrep $1 || systemctl start $1
 }
 
 #install_docker
 download_hashitools
-start_consul
-start_nomad
+start consul
+start nomad
+start vault
 
