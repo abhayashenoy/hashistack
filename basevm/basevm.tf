@@ -43,6 +43,17 @@ data "template_file" "consul_json" {
   }
 }
 
+data "template_file" "consul_service" {
+  template = "${file("templates/consul.service.tpl")}"
+  vars {
+    data_dir   = "${var.data_dir}"
+    config_dir = "${var.config_dir}"
+    bin_dir    = "${var.bin_dir}"
+    pid_dir    = "${var.pid_dir}"
+  }
+}
+
+
 data "template_file" "nomad_base_hcl" {
   template = "${file("templates/nomad_base.hcl.tpl")}"
   vars {
@@ -54,16 +65,6 @@ data "template_file" "nomad_base_hcl" {
   }
 }
 
-data "template_file" "consul_service" {
-  template = "${file("templates/consul.service.tpl")}"
-  vars {
-    data_dir   = "${var.data_dir}"
-    config_dir = "${var.config_dir}"
-    bin_dir    = "${var.bin_dir}"
-    pid_dir    = "${var.pid_dir}"
-  }
-}
-
 data "template_file" "nomad_service" {
   template = "${file("templates/nomad.service.tpl")}"
   vars {
@@ -71,6 +72,14 @@ data "template_file" "nomad_service" {
     config_dir = "${var.config_dir}"
     bin_dir    = "${var.bin_dir}"
     nomad_type = "${var.nomad_type}"
+  }
+}
+
+data "template_file" "vault_service" {
+  template = "${file("templates/vault.service.tpl")}"
+  vars {
+    config_dir = "${var.config_dir}"
+    bin_dir    = "${var.bin_dir}"
   }
 }
 
@@ -158,6 +167,24 @@ resource "aws_instance" "instance" {
       user = "ubuntu"
       private_key = "${file("abhaya-aws.pem")}"
     }
+    content = "${data.template_file.vault_service.rendered}"
+    destination = "/tmp/vault.service"
+  }
+
+  provisioner "file" {
+    connection = {
+      user = "ubuntu"
+      private_key = "${file("abhaya-aws.pem")}"
+    }
+    content = "${file("files/vault.hcl")}"
+    destination = "${var.config_dir}/vault.hcl"
+  }
+
+  provisioner "file" {
+    connection = {
+      user = "ubuntu"
+      private_key = "${file("abhaya-aws.pem")}"
+    }
     content = "${data.template_file.provisioner.rendered}"
     destination = "/tmp/provision.sh"
   }
@@ -169,8 +196,6 @@ resource "aws_instance" "instance" {
     }
     inline = [
       "sudo chown -R root.root /opt/hashi",
-      "sudo mv /tmp/consul.service ${var.systemd_dir}",
-      "sudo mv /tmp/nomad.service ${var.systemd_dir}"
       "sudo mv /tmp/*.service ${var.systemd_dir}"
     ]
   }
