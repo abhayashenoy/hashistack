@@ -171,6 +171,7 @@ resource "aws_instance" "instance" {
       "sudo chown -R root.root /opt/hashi",
       "sudo mv /tmp/consul.service ${var.systemd_dir}",
       "sudo mv /tmp/nomad.service ${var.systemd_dir}"
+      "sudo mv /tmp/*.service ${var.systemd_dir}"
     ]
   }
 
