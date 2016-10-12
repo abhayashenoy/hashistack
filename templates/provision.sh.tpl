@@ -40,5 +40,4 @@ function start {
 download_hashitools
 start consul
 start nomad
-start vault
 
