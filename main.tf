@@ -1,111 +1,90 @@
-variable "aws_access_key" {}
-variable "aws_secret_key" {}
-
-variable "ip_one"   {
-  default = "10.0.1.10"
-}
-variable "ip_two" {
-  default = "10.0.1.20"
-}
-variable "ip_three" {
-  default = "10.0.1.30"
-}
+variable "aws_access_key"        {}
+variable "aws_secret_key"        {}
+variable "config_dir"            {}
+variable "worker_ami"            {}
+variable "worker_instance_type"  {}
+variable "manager_ami"           {}
+variable "manager_instance_type" {}
+variable "key_name"              {}
+variable "aws_region"            {}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
   secret_key = "${var.aws_secret_key}"
-  region     = "ap-southeast-1"
+  region     = "${var.aws_region}"
 }
 
 module "vpc" {
   source = "./vpc"
 }
 
-/*
-module "db" {
-  source = "./db"
-
-  security_group     = "${module.vpc.security_group_id}"
-  subnet_main        = "${module.vpc.subnet_primary_id}"
-  subnet_secondary   = "${module.vpc.subnet_secondary_id}"
-}
-*/
-
-module "master" {
-  source = "./basevm"
-
-  security_group_id = "${module.vpc.security_group_id}"
-  subnet_id         = "${module.vpc.subnet_primary_id}"
-  name              = "master"
-  ip                = "${var.ip_one}"
-  ip_one            = "${var.ip_two}"
-  ip_two            = "${var.ip_three}"
+variable "manager_ips" {
+  default = {
+    "0" = "10.0.1.10"
+    "1" = "10.0.1.20"
+    "2" = "10.0.1.30"
+  }
 }
 
-module "slave-one" {
-  source = "./basevm"
+resource "aws_instance" "managers" {
+  ami                         = "${var.manager_ami}"
+  instance_type               = "${var.manager_instance_type}"
+  vpc_security_group_ids      = ["${module.vpc.security_group_id}"]
+  subnet_id                   = "${module.vpc.subnet_primary_id}"
+  key_name                    = "${var.key_name}"
+  private_ip                  = "${lookup(var.manager_ips, count.index)}"
+  associate_public_ip_address = true
+  count                       = 3
 
-  security_group_id  = "${module.vpc.security_group_id}"
-  subnet_id          = "${module.vpc.subnet_primary_id}"
-  name              = "slave-one"
-  ip                = "${var.ip_two}"
-  ip_one            = "${var.ip_one}"
-  ip_two            = "${var.ip_three}"
-}
-
-module "slave-two" {
-  source = "./basevm"
-
-  security_group_id  = "${module.vpc.security_group_id}"
-  subnet_id          = "${module.vpc.subnet_primary_id}"
-  name               = "slave-two"
-  ip                 = "${var.ip_three}"
-  ip_one             = "${var.ip_one}"
-  ip_two             = "${var.ip_two}"
-}
-
-module "worker-one" {
-  source = "./worker"
-
-  security_group_id  = "${module.vpc.security_group_id}"
-  subnet_id          = "${module.vpc.subnet_primary_id}"
-  name               = "worker-one"
-  ip                 = "10.0.1.110"
-  ip_one             = "${var.ip_one}"
-  ip_two             = "${var.ip_two}"
-  ip_three           = "${var.ip_three}"
-}
-
-module "worker-two" {
-  source = "./worker"
-
-  security_group_id  = "${module.vpc.security_group_id}"
-  subnet_id          = "${module.vpc.subnet_primary_id}"
-  name               = "worker-two"
-  ip                 = "10.0.1.120"
-  ip_one             = "${var.ip_one}"
-  ip_two             = "${var.ip_two}"
-  ip_three           = "${var.ip_three}"
-}
-
-module "worker-three" {
-  source = "./worker"
-
-  security_group_id  = "${module.vpc.security_group_id}"
-  subnet_id          = "${module.vpc.subnet_primary_id}"
-  name               = "worker-three"
-  ip                 = "10.0.1.130"
-  ip_one             = "${var.ip_one}"
-  ip_two             = "${var.ip_two}"
-  ip_three           = "${var.ip_three}"
+  provisioner "remote-exec" {
+    connection = {
+      user = "ubuntu"
+      private_key = "${file("${var.key_name}.pem")}"
+    }
+    inline = [
+      "sudo sed -i -e 's/%%node-name%%/manager-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, (count.index + 1) % 3)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, (count.index + 2) % 3)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%IP%%/${lookup(var.manager_ips, count.index)}/' ${var.config_dir}/nomad/base.hcl",
+      "sudo systemctl restart consul",
+      "sudo systemctl restart nomad"
+    ]
+  }
 }
 
 output "master_ip" {
-  value = "export MASTER_IP=${module.master.public_ip}"
+  value = "export MASTER_IP=${aws_instance.managers.0.public_ip}"
 }
 
-output "worker_one_ip" {
-  value = "export WORKER_ONE_IP=${module.worker-one.private_ip}"
+variable "worker_ips" {
+  default = {
+    "0" = "10.0.1.100"
+    "1" = "10.0.1.101"
+    "2" = "10.0.1.102"
+  }
 }
 
+resource "aws_instance" "workers" {
+  ami                         = "${var.worker_ami}"
+  instance_type               = "${var.worker_instance_type}"
+  vpc_security_group_ids      = ["${module.vpc.security_group_id}"]
+  subnet_id                   = "${module.vpc.subnet_primary_id}"
+  key_name                    = "${var.key_name}"
+  private_ip                  = "${lookup(var.worker_ips, count.index)}"
+  associate_public_ip_address = true
+  count                       = 1
 
+  provisioner "remote-exec" {
+    connection = {
+      user = "ubuntu"
+      private_key = "${file("${var.key_name}.pem")}"
+    }
+    inline = [
+      "sudo sed -i -e 's/%%node-name%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
+      "sudo systemctl restart consul",
+      "sudo systemctl restart nomad"
+    ]
+  }
+}
+
+output "worker_ip" {
+  value = "export WORKER_IP=${aws_instance.workers.0.private_ip}"
+}
