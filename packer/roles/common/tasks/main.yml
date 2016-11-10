@@ -1,0 +1,50 @@
+---
+  - name: install packages
+    apt:
+      name: unzip
+      state: present
+
+  - name: Create directories
+    file: path={{ item }} mode=0755 state=directory
+    with_items:
+      - "{{ base_dir }}"
+      - "{{ config_dir }}"
+      - "{{ config_dir }}/consul"
+      - "{{ config_dir }}/nomad"
+      - "{{ bin_dir }}"
+      - "{{ data_dir }}"
+      - "{{ data_dir }}/consul"
+      - "{{ data_dir }}/nomad"
+      - "{{ pid_dir }}"
+
+  - name: download files
+    get_url:
+      url: "{{ item.src }}"
+      dest: /tmp/{{ item.dest }}
+    with_items:
+      - { src: "https://releases.hashicorp.com/consul/0.7.0/consul_0.7.0_linux_amd64.zip", dest: consul.zip }
+      - { src: "https://releases.hashicorp.com/nomad/0.4.1/nomad_0.4.1_linux_amd64.zip", dest: nomad.zip }
+      - { src: "https://releases.hashicorp.com/vault/0.6.2/vault_0.6.2_linux_amd64.zip", dest: vault.zip }
+
+  - name: unzip files
+    unarchive:
+      src: "/tmp/{{ item }}.zip"
+      dest: "{{ bin_dir }}"
+      copy: no
+    with_items:
+      - consul
+      - nomad
+      - vault
+
+  - name: setup config files
+    template:
+      src: "{{ item.src }}"
+      dest: "{{ item.dest }}"
+      owner: root
+      group: root
+    with_items:
+      - { src: templates/consul.service.j2,     dest: "/etc/systemd/system/consul.service" }
+      - { src: templates/nomad.service.j2,      dest: "/etc/systemd/system/nomad.service"  }
+      - { src: templates/nomad_base.hcl.j2,     dest: "{{ config_dir }}/nomad/base.hcl"    }
+      - { src: templates/consul_server.json.j2, dest: "{{ config_dir }}/consul.json"       }
+      - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"  }

@@ -1,0 +1,8 @@
+base_dir: "/opt/hashi"
+config_dir: "{{ base_dir }}/config"
+bin_dir: "{{ base_dir }}/bin"
+data_dir: "{{ base_dir }}/data"
+pid_dir: "{{ base_dir }}/pid"
+nomad_type: server
+
+

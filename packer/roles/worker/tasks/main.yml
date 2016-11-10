@@ -1,0 +1,10 @@
+- name: setup client config files
+  template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+  with_items:
+    - { src: templates/consul_client.json.j2, dest: "{{ config_dir }}/consul.json"       }
+    - { src: templates/nomad_client.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"  }
+

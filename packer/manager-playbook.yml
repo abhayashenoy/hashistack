@@ -1,0 +1,7 @@
+---
+- hosts: default
+  become: true
+  become_user: root
+  roles:
+    - common
+    - manager
