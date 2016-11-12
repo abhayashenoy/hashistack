@@ -16,15 +16,23 @@ resource "aws_subnet" "secondary" {
   availability_zone = "ap-southeast-1b"
 }
 
-resource "aws_security_group" "sg" {
+resource "aws_security_group" "cluster_security_group" {
   vpc_id = "${aws_vpc.vpc.id}"
+
+  # HTTP for ALB
+  ingress {
+    from_port = 80
+    to_port = 80
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
 
   # SSH -- maybe can go away later
   ingress {
-    from_port = 22
-    to_port = 22
-    protocol = "tcp"
-    cidr_blocks = ["0.0.0.0/0"]
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    security_groups = ["${aws_security_group.bastion_security_group.id}"]
   }
 
   # All internal->internal VPC connections allowed
@@ -33,6 +41,26 @@ resource "aws_security_group" "sg" {
     to_port = 0
     protocol = "-1"
     self = true
+  }
+
+  # All internat->external VPC connections allowed
+  egress {
+    from_port = 0
+    to_port = 0
+    protocol = "-1"
+    cidr_blocks = ["0.0.0.0/0"]
+  }
+}
+
+resource "aws_security_group" "bastion_security_group" {
+  vpc_id = "${aws_vpc.vpc.id}"
+
+  # SSH -- maybe can go away later
+  ingress {
+    from_port = 22
+    to_port = 22
+    protocol = "tcp"
+    cidr_blocks = ["0.0.0.0/0"]
   }
 
   # All internat->external VPC connections allowed
@@ -72,6 +100,14 @@ output "subnet_secondary_id" {
   value = "${aws_subnet.secondary.id}"
 }
 
-output "security_group_id" {
-  value = "${aws_security_group.sg.id}"
+output "cluster_security_group_id" {
+  value = "${aws_security_group.cluster_security_group.id}"
+}
+
+output "bastion_security_group_id" {
+  value = "${aws_security_group.bastion_security_group.id}"
+}
+
+output "vpc_id" {
+  value = "${aws_vpc.vpc.id}"
 }

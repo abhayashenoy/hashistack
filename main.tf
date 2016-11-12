@@ -31,7 +31,7 @@ variable "manager_ips" {
 resource "aws_instance" "managers" {
   ami                         = "${var.manager_ami}"
   instance_type               = "${var.manager_instance_type}"
-  vpc_security_group_ids      = ["${module.vpc.security_group_id}"]
+  vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_primary_id}"
   key_name                    = "${var.key_name}"
   private_ip                  = "${lookup(var.manager_ips, count.index)}"
@@ -63,7 +63,7 @@ variable "worker_ips" {
 resource "aws_instance" "workers" {
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_instance_type}"
-  vpc_security_group_ids      = ["${module.vpc.security_group_id}"]
+  vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_primary_id}"
   key_name                    = "${var.key_name}"
   private_ip                  = "${lookup(var.worker_ips, count.index)}"
@@ -86,7 +86,7 @@ resource "aws_instance" "workers" {
 resource "aws_instance" "bastion" {
   ami                         = "${var.bastion_ami}"
   instance_type               = "${var.bastion_instance_type}"
-  vpc_security_group_ids      = ["${module.vpc.security_group_id}"]
+  vpc_security_group_ids      = ["${module.vpc.bastion_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_primary_id}"
   key_name                    = "${var.key_name}"
   private_ip                  = "10.0.1.254"
