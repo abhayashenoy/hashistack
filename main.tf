@@ -24,6 +24,7 @@ module "vpc" {
 }
 
 variable "manager_ips" {
+  type = "map"
   default = {
     "0" = "10.0.1.10"
     "1" = "10.0.1.20"
@@ -42,8 +43,8 @@ resource "aws_instance" "managers" {
 
   provisioner "remote-exec" {
     connection = {
-      user = "ubuntu"
-      private_key = "${file("${var.key_name}.pem")}"
+      user         = "ubuntu"
+      private_key  = "${file("${var.key_name}.pem")}"
       bastion_host = "${aws_instance.bastion.public_ip}"
     }
     inline = [
@@ -56,6 +57,7 @@ resource "aws_instance" "managers" {
 }
 
 variable "worker_ips" {
+  type = "map"
   default = {
     "0" = "10.0.1.100"
     "1" = "10.0.1.101"
@@ -74,10 +76,11 @@ resource "aws_instance" "workers" {
 
   provisioner "remote-exec" {
     connection = {
-      user = "ubuntu"
-      private_key = "${file("${var.key_name}.pem")}"
+      user         = "ubuntu"
+      private_key  = "${file("${var.key_name}.pem")}"
       bastion_host = "${aws_instance.bastion.public_ip}"
     }
+
     inline = [
       "sudo sed -i -e 's/%%node-name%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
       "sudo systemctl restart consul",
@@ -135,8 +138,7 @@ resource "aws_alb_listener_rule" "cluster_listener_rule" {
 
   condition {
     field  = "path-pattern"
-    values = [
-      "*"]
+    values = ["*"]
   }
 }
 
