@@ -27,7 +27,7 @@ resource "aws_security_group" "cluster_security_group" {
     cidr_blocks = ["0.0.0.0/0"]
   }
 
-  # SSH -- maybe can go away later
+  # all connections from bastion vpc
   ingress {
     from_port       = 0
     to_port         = 0
@@ -78,7 +78,8 @@ resource "aws_internet_gateway" "gw" {
 }
 
 # Overriding the VPC main routing table
-resource "aws_route_table" "routes" {
+# Overriding the VPC main routing table
+resource "aws_route_table" "primary_route_table" {
   vpc_id = "${aws_vpc.vpc.id}"
   route {
     cidr_block = "0.0.0.0/0"
@@ -86,11 +87,33 @@ resource "aws_route_table" "routes" {
   }
 }
 
-resource "aws_main_route_table_association" "main_routes" {
+resource "aws_main_route_table_association" "primary_routes" {
   vpc_id         = "${aws_vpc.vpc.id}"
-  route_table_id = "${aws_route_table.routes.id}"
+  route_table_id = "${aws_route_table.primary_route_table.id}"
 }
 
+resource "aws_route_table" "secondary_route_table" {
+  vpc_id = "${aws_vpc.vpc.id}"
+  route {
+    cidr_block = "0.0.0.0/0"
+    nat_gateway_id = "${aws_nat_gateway.nat_gw.id}"
+  }
+}
+
+resource "aws_route_table_association" "secondary_routes" {
+  subnet_id      = "${aws_subnet.secondary.id}"
+  route_table_id = "${aws_route_table.secondary_route_table.id}"
+}
+
+resource "aws_eip" "nat_eip" {
+  vpc = true
+}
+
+resource "aws_nat_gateway" "nat_gw" {
+  allocation_id = "${aws_eip.nat_eip.id}"
+  subnet_id     = "${aws_subnet.primary.id}"
+  depends_on    = ["aws_internet_gateway.gw"]
+}
 
 output "subnet_primary_id" {
   value = "${aws_subnet.primary.id}"

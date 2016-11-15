@@ -26,9 +26,9 @@ module "vpc" {
 variable "manager_ips" {
   type = "map"
   default = {
-    "0" = "10.0.1.10"
-    "1" = "10.0.1.20"
-    "2" = "10.0.1.30"
+    "0" = "10.0.2.10"
+    "1" = "10.0.2.20"
+    "2" = "10.0.2.30"
   }
 }
 
@@ -36,7 +36,7 @@ resource "aws_instance" "managers" {
   ami                         = "${var.manager_ami}"
   instance_type               = "${var.manager_instance_type}"
   vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
-  subnet_id                   = "${module.vpc.subnet_primary_id}"
+  subnet_id                   = "${module.vpc.subnet_secondary_id}"
   key_name                    = "${var.key_name}"
   private_ip                  = "${lookup(var.manager_ips, count.index)}"
   count                       = 3
@@ -59,9 +59,9 @@ resource "aws_instance" "managers" {
 variable "worker_ips" {
   type = "map"
   default = {
-    "0" = "10.0.1.100"
-    "1" = "10.0.1.101"
-    "2" = "10.0.1.102"
+    "0" = "10.0.2.100"
+    "1" = "10.0.2.101"
+    "2" = "10.0.2.102"
   }
 }
 
@@ -69,7 +69,7 @@ resource "aws_instance" "workers" {
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_instance_type}"
   vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
-  subnet_id                   = "${module.vpc.subnet_primary_id}"
+  subnet_id                   = "${module.vpc.subnet_secondary_id}"
   key_name                    = "${var.key_name}"
   private_ip                  = "${lookup(var.worker_ips, count.index)}"
   count                       = "${var.worker_count}"
@@ -138,14 +138,14 @@ resource "aws_alb_listener_rule" "cluster_listener_rule" {
 
   condition {
     field  = "path-pattern"
-    values = ["*"]
+    values = ["/*"]
   }
 }
 
 resource "aws_alb_target_group_attachment" "cluster_target_group_attachment" {
   target_group_arn = "${aws_alb_target_group.cluster_target_group.arn}"
   target_id        = "${element(aws_instance.workers.*.id, count.index)}"
-  port             = 80
+  port             = 9999
   count            = "${var.worker_count}"
 }
 
