@@ -1,4 +1,4 @@
 while true; do 
-  curl -H "Host: hashipy.com" http://localhost:9999/version
+  curl -H "Host: hashipy.com" http://$ALB/version
   sleep 1
 done
