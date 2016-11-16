@@ -47,4 +47,22 @@
       - { src: templates/nomad.service.j2,      dest: "/etc/systemd/system/nomad.service"  }
       - { src: templates/nomad_base.hcl.j2,     dest: "{{ config_dir }}/nomad/base.hcl"    }
       - { src: templates/consul_server.json.j2, dest: "{{ config_dir }}/consul.json"       }
-      - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"  }
+      - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"    }
+
+  - name: setup timezone
+    command: sudo timedatectl set-timezone Asia/Singapore
+
+  - name: install ntp
+    apt:
+      name: ntp
+      state: present
+
+  - name: setup ntp configuration
+    copy:
+      src: templates/ntp.conf
+      dest: "/etc/ntp.conf"
+
+  - name: start ntp server
+    service:
+      name: ntp
+      state: started
