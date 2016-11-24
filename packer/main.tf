@@ -1,15 +1,14 @@
 variable "aws_access_key" {}
 variable "aws_secret_key" {}
+variable "ami"            {}
+variable "region"         {}
+variable "az"             {}
+variable "keyfile"        {}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
   secret_key = "${var.aws_secret_key}"
-  region     = "ap-southeast-1"
-}
-
-
-variable "ami" {
-  default = "ami-f2309091" # ubuntu xenial hvm ebs
+  region     = "${var.region}"
 }
 
 resource "aws_vpc" "vpc" {
@@ -20,7 +19,7 @@ resource "aws_vpc" "vpc" {
 resource "aws_subnet" "primary" {
   vpc_id = "${aws_vpc.vpc.id}"
   cidr_block = "10.0.1.0/24"
-  availability_zone = "ap-southeast-1a"
+  availability_zone = "${var.az}"
 }
 
 resource "aws_security_group" "sg" {
