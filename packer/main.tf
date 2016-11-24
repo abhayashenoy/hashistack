@@ -70,6 +70,10 @@ resource "aws_main_route_table_association" "main_routes" {
   route_table_id = "${aws_route_table.routes.id}"
 }
 
+resource "aws_key_pair" "keypair" {
+  key_name = "terraform-key"
+  public_key = "${file("${var.keyfile}")}"
+}
 
 resource "aws_instance" "instance" {
   ami                         = "${var.ami}"
@@ -77,7 +81,7 @@ resource "aws_instance" "instance" {
   vpc_security_group_ids      = ["${aws_security_group.sg.id}"]
   subnet_id                   = "${aws_subnet.primary.id}"
   private_ip                  = "10.0.1.10"
-  key_name                    = "abhaya-aws"
+  key_name                    = "${aws_key_pair.keypair.key_name}"
   associate_public_ip_address = true
 }
 
