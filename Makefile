@@ -1,6 +1,6 @@
 .PHONY: plan destroy dot
 
-plan:
+plan: id_rsa
 	terraform plan
 
 apply: id_rsa
@@ -22,6 +22,9 @@ clean:
 
 id_rsa id_rsa.pub:
 	ssh-keygen -t rsa -f id_rsa -N ''
+
+ssh-bastion:
+	ssh -i id_rsa -A ubuntu@$$BASTION_IP
 
 tunnel:
 	ssh                            \
