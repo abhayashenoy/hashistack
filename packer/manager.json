@@ -11,7 +11,7 @@
     "source_ami": "ami-37258454",
     "instance_type": "t2.nano",
     "ssh_username": "ubuntu",
-    "ami_name": "manager {{timestamp}}",
+    "ami_name": "manager-{{isotime \"2006-01-02-03-04-05\"}}",
     "vpc_id": "vpc-8f8843eb",
     "subnet_id": "subnet-345ae342",
     "associate_public_ip_address": "true",
