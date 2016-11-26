@@ -172,12 +172,14 @@ resource "aws_alb_target_group_attachment" "cluster_target_group_attachment" {
 
 data "template_file" "envrc_template" {
   template = <<EOF
-export ALB=$$alb
-export MANAGER_0_IP=$$manager_0_ip
-export MANAGER_1_IP=$$manager_1_ip
-export MANAGER_2_IP=$$manager_2_ip
-export WORKER_0_IP=$$worker_0_ip
-export BASTION_IP=$$bastion_ip
+export ALB=$${alb}
+export MANAGER_0_IP=$${manager_0_ip}
+export MANAGER_1_IP=$${manager_1_ip}
+export MANAGER_2_IP=$${manager_2_ip}
+export WORKER_0_IP=$${worker_0_ip}
+export WORKER_1_IP=$${worker_1_ip}
+export WORKER_2_IP=$${worker_2_ip}
+export BASTION_IP=$${bastion_ip}
 EOF
 
   vars = {
@@ -186,6 +188,8 @@ EOF
     manager_1_ip = "${aws_instance.managers.1.private_ip}"
     manager_2_ip = "${aws_instance.managers.2.private_ip}"
     worker_0_ip  = "${aws_instance.workers.0.private_ip}"
+    worker_1_ip  = "${aws_instance.workers.1.private_ip}"
+    worker_2_ip  = "${aws_instance.workers.2.private_ip}"
     bastion_ip   = "${aws_instance.bastion.0.public_ip}"
   }
 }
@@ -197,6 +201,6 @@ resource "null_resource" "ips" {
   }
 
   provisioner "local-exec" {
-    command = "echo ${data.template_file.envrc_template.rendered} > .envrc"
+    command = "echo \"${data.template_file.envrc_template.rendered}\" > .envrc"
   }
 }
