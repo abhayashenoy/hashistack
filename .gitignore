@@ -10,3 +10,6 @@
 
 # SSH control path for tunnel
 .control-path
+
+hosts
+id_rsa*
