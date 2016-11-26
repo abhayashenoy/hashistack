@@ -31,6 +31,8 @@ resource "aws_key_pair" "keypair" {
   public_key = "${file("${var.keyfile}")}"
 }
 
+########### MANAGERS ###############
+
 resource "aws_instance" "managers" {
   ami                         = "${var.manager_ami}"
   instance_type               = "${var.manager_instance_type}"
@@ -76,6 +78,8 @@ resource "null_resource" "manager_setup" {
   }
 }
 
+############# WORKERS #################
+
 resource "aws_instance" "workers" {
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_instance_type}"
@@ -105,6 +109,8 @@ resource "aws_instance" "workers" {
   }
 }
 
+############# BASTION #################
+
 resource "aws_instance" "bastion" {
   ami                         = "${var.bastion_ami}"
   instance_type               = "${var.bastion_instance_type}"
@@ -114,6 +120,8 @@ resource "aws_instance" "bastion" {
   private_ip                  = "${var.bastion_ip}"
   associate_public_ip_address = true
 }
+
+############### ALB ###################
 
 resource "aws_alb" "cluster_alb" {
   internal        = false
@@ -161,6 +169,8 @@ resource "aws_alb_target_group_attachment" "cluster_target_group_attachment" {
   count            = "${var.worker_count}"
 }
 
+############### OUTPUT ###################
+
 data "template_file" "envrc_template" {
   template = <<EOF
 export ALB=$$alb
@@ -172,19 +182,19 @@ export BASTION_IP=$$bastion_ip
 EOF
 
   vars = {
-    alb = "${aws_alb.cluster_alb.dns_name}"
+    alb          = "${aws_alb.cluster_alb.dns_name}"
     manager_0_ip = "${aws_instance.managers.0.private_ip}"
     manager_1_ip = "${aws_instance.managers.1.private_ip}"
     manager_2_ip = "${aws_instance.managers.2.private_ip}"
-    worker_0_ip = "${aws_instance.workers.0.private_ip}"
-    bastion_ip = "${aws_instance.bastion.0.public_ip}"
+    worker_0_ip  = "${aws_instance.workers.0.private_ip}"
+    bastion_ip   = "${aws_instance.bastion.0.public_ip}"
   }
 }
 
 resource "null_resource" "ips" {
   triggers {
     manager_ids = "${join(",", aws_instance.managers.*.id)}"
-    worker_ids = "${join(",", aws_instance.workers.*.id)}"
+    worker_ids  = "${join(",", aws_instance.workers.*.id)}"
   }
 
   provisioner "local-exec" {
