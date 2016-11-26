@@ -7,3 +7,6 @@
 # Dot output for dependency graphing
 *.png
 *.dot
+
+# SSH control path for tunnel
+.control-path
