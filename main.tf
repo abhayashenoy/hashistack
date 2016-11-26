@@ -95,6 +95,7 @@ resource "aws_instance" "workers" {
   key_name                    = "${var.key_name}"
   private_ip                  = "${lookup(var.worker_ips, count.index)}"
   count                       = "${var.worker_count}"
+  depends_on                  = ["null_resource.manager_setup"]
 
   provisioner "remote-exec" {
     connection = {
@@ -104,9 +105,13 @@ resource "aws_instance" "workers" {
     }
 
     inline = [
-      "sudo sed -i -e 's/%%node-name%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%node-index%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%node-ip%%/${lookup(var.worker_ips, count.index)}/' -e 's/%%manager-0-ip%%/${lookup(var.manager_ips, 0)}/' -e 's/%%manager-1-ip%%/${lookup(var.manager_ips, 1)}/' -e 's/%%manager-2-ip%%/${lookup(var.manager_ips, 2)}/'  /etc/default/flanneld",
       "sudo systemctl restart consul",
-      "sudo systemctl restart nomad"
+      "sudo systemctl restart nomad",
+      "sudo systemctl restart flanneld",
+      "sleep 5 && sudo ${var.bin_dir}/mk-docker-opts.sh -c -d /etc/default/docker",
+      "sudo systemctl restart docker"
     ]
   }
 }
