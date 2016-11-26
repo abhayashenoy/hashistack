@@ -2,6 +2,7 @@
 
 vm: id_rsa
 	terraform apply
+	direnv allow
 
 kill-vm:
 	terraform destroy -force

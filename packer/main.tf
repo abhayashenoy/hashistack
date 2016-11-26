@@ -84,6 +84,12 @@ resource "aws_instance" "instance" {
   associate_public_ip_address = true
 }
 
-output "public_ip" {
-  value = "${aws_instance.instance.public_ip}"
+resource "null_resource" "ips" {
+  triggers {
+    instance_id = "${aws_instance.instance.id}"
+  }
+
+  provisioner "local-exec" {
+    command = "echo export VM_IP=${aws_instance.instance.public_ip} > .envrc"
+  }
 }
