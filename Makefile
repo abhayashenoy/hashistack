@@ -3,7 +3,7 @@
 plan:
 	terraform plan
 
-apply:
+apply: id_rsa
 	terraform apply
 	direnv allow
 
@@ -19,3 +19,5 @@ dot:
 clean:
 	rm -f deps.dot deps.png
 
+id_rsa id_rsa.pub:
+	ssh-keygen -t rsa -f id_rsa -N ''
