@@ -97,7 +97,8 @@ resource "aws_instance" "workers" {
     }
 
     inline = [
-      "sudo sed -i -e 's/%%node-index%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%node-ip%%/${lookup(var.worker_ips, count.index)}/' -e 's/%%node-index%%/worker-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, 0)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, 1)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%node-ip%%/${lookup(var.worker_ips, count.index)}/' ${var.config_dir}/nomad/base.hcl",
       "sudo sed -i -e 's/%%node-ip%%/${lookup(var.worker_ips, count.index)}/' -e 's/%%manager-0-ip%%/${lookup(var.manager_ips, 0)}/' -e 's/%%manager-1-ip%%/${lookup(var.manager_ips, 1)}/' -e 's/%%manager-2-ip%%/${lookup(var.manager_ips, 2)}/'  /etc/default/flanneld",
       "sudo systemctl restart consul",
       "sudo systemctl restart nomad",
@@ -176,9 +177,6 @@ export ALB=$${alb}
 export MANAGER_0_IP=$${manager_0_ip}
 export MANAGER_1_IP=$${manager_1_ip}
 export MANAGER_2_IP=$${manager_2_ip}
-export WORKER_0_IP=$${worker_0_ip}
-export WORKER_1_IP=$${worker_1_ip}
-export WORKER_2_IP=$${worker_2_ip}
 export BASTION_IP=$${bastion_ip}
 EOF
 
@@ -187,9 +185,6 @@ EOF
     manager_0_ip = "${aws_instance.managers.0.private_ip}"
     manager_1_ip = "${aws_instance.managers.1.private_ip}"
     manager_2_ip = "${aws_instance.managers.2.private_ip}"
-    worker_0_ip  = "${aws_instance.workers.0.private_ip}"
-    worker_1_ip  = "${aws_instance.workers.1.private_ip}"
-    worker_2_ip  = "${aws_instance.workers.2.private_ip}"
     bastion_ip   = "${aws_instance.bastion.0.public_ip}"
   }
 }
