@@ -32,6 +32,8 @@ tunnel:
 		-L 8400:$$MANAGER_0_IP:8400  \
 		-L 8500:$$MANAGER_0_IP:8500  \
 		-L 4646:$$MANAGER_0_IP:4646  \
+		-L 4647:$$MANAGER_0_IP:4647  \
+		-L 4648:$$MANAGER_0_IP:4648  \
 		-L 9999:$$WORKER_0_IP:9999   \
 		-i id_rsa                    \
 		ubuntu@$$BASTION_IP          \
