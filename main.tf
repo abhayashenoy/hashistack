@@ -1,6 +1,7 @@
 variable "aws_access_key"        {}
 variable "aws_secret_key"        {}
 variable "config_dir"            {}
+variable "bin_dir"               {}
 variable "worker_ami"            {}
 variable "worker_instance_type"  {}
 variable "manager_ami"           {}
@@ -48,10 +49,31 @@ resource "aws_instance" "managers" {
       bastion_host = "${aws_instance.bastion.public_ip}"
     }
     inline = [
-      "sudo sed -i -e 's/%%node-name%%/manager-${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, (count.index + 1) % 3)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, (count.index + 2) % 3)}/' ${var.config_dir}/consul.json",
-      "sudo sed -i -e 's/%%IP%%/${lookup(var.manager_ips, count.index)}/' ${var.config_dir}/nomad/base.hcl",
+      "sudo sed -i -e 's/%%node-index%%/${count.index}/' -e 's/%%join-master-1%%/${lookup(var.manager_ips, (count.index + 1) % 3)}/' -e 's/%%join-master-2%%/${lookup(var.manager_ips, (count.index + 2) % 3)}/' ${var.config_dir}/consul.json",
+      "sudo sed -i -e 's/%%node-ip%%/${lookup(var.manager_ips, count.index)}/' ${var.config_dir}/nomad/base.hcl",
+      "sudo sed -i -e 's/%%node-ip%%/${lookup(var.manager_ips, count.index)}/' -e 's/%%node-index%%/${count.index}/' -e 's/%%manager-0-ip%%/${lookup(var.manager_ips, 0)}/' -e 's/%%manager-1-ip%%/${lookup(var.manager_ips, 1)}/' -e 's/%%manager-2-ip%%/${lookup(var.manager_ips, 2)}/'  /etc/default/etcd",
       "sudo systemctl restart consul",
-      "sudo systemctl restart nomad"
+      "sudo systemctl restart nomad",
+      "sudo systemctl restart etcd"
+    ]
+  }
+}
+
+resource "null_resource" "manager_setup" {
+  triggers {
+    manager_ids = "${join(",", aws_instance.managers.*.id)}"
+  }
+
+  connection = {
+    user         = "ubuntu"
+    private_key  = "${file("${var.key_name}.pem")}"
+    bastion_host = "${aws_instance.bastion.public_ip}"
+    host         = "${aws_instance.managers.0.private_ip}"
+  }
+
+  provisioner "remote-exec" {
+    inline = [
+      "sudo ${var.bin_dir}/etcdctl set /coreos.com/network/config '{ \"Network\": \"10.100.0.0/16\" }'"
     ]
   }
 }
