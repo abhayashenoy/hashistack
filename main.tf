@@ -6,7 +6,6 @@ variable "worker_ami"            {}
 variable "worker_instance_type"  {}
 variable "manager_ami"           {}
 variable "manager_instance_type" {}
-variable "key_name"              {}
 variable "aws_region"            {}
 variable "bastion_ami"           {}
 variable "bastion_instance_type" {}
@@ -28,7 +27,7 @@ module "vpc" {
 
 resource "aws_key_pair" "keypair" {
   key_name = "terraform-key"
-  public_key = "${file("${var.keyfile}")}"
+  public_key = "${file("${var.keyfile}.pub")}"
 }
 
 ########### MANAGERS ###############
@@ -45,7 +44,7 @@ resource "aws_instance" "managers" {
   provisioner "remote-exec" {
     connection = {
       user         = "ubuntu"
-      private_key  = "${file("${var.key_name}.pem")}"
+      private_key  = "${file("${var.keyfile}")}"
       bastion_host = "${aws_instance.bastion.public_ip}"
     }
     inline = [
@@ -66,7 +65,7 @@ resource "null_resource" "manager_setup" {
 
   connection = {
     user         = "ubuntu"
-    private_key  = "${file("${var.key_name}.pem")}"
+    private_key  = "${file("${var.keyfile}")}"
     bastion_host = "${aws_instance.bastion.public_ip}"
     host         = "${aws_instance.managers.0.private_ip}"
   }
@@ -93,7 +92,7 @@ resource "aws_instance" "workers" {
   provisioner "remote-exec" {
     connection = {
       user         = "ubuntu"
-      private_key  = "${file("${var.key_name}.pem")}"
+      private_key  = "${file("${var.keyfile}")}"
       bastion_host = "${aws_instance.bastion.public_ip}"
     }
 
