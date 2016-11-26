@@ -12,6 +12,9 @@ variable "bastion_ami"           {}
 variable "bastion_instance_type" {}
 variable "worker_count"          {}
 variable "keyfile"               {}
+variable "manager_ips"           { type = "map" }
+variable "worker_ips"            { type = "map" }
+variable "bastion_ip"            {}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
@@ -21,15 +24,6 @@ provider "aws" {
 
 module "vpc" {
   source = "./vpc"
-}
-
-variable "manager_ips" {
-  type = "map"
-  default = {
-    "0" = "10.0.2.10"
-    "1" = "10.0.2.20"
-    "2" = "10.0.2.30"
-  }
 }
 
 resource "aws_key_pair" "keypair" {
@@ -82,15 +76,6 @@ resource "null_resource" "manager_setup" {
   }
 }
 
-variable "worker_ips" {
-  type = "map"
-  default = {
-    "0" = "10.0.2.100"
-    "1" = "10.0.2.101"
-    "2" = "10.0.2.102"
-  }
-}
-
 resource "aws_instance" "workers" {
   ami                         = "${var.worker_ami}"
   instance_type               = "${var.worker_instance_type}"
@@ -126,7 +111,7 @@ resource "aws_instance" "bastion" {
   vpc_security_group_ids      = ["${module.vpc.bastion_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_primary_id}"
   key_name                    = "${aws_key_pair.keypair.key_name}"
-  private_ip                  = "10.0.1.254"
+  private_ip                  = "${var.bastion_ip}"
   associate_public_ip_address = true
 }
 
