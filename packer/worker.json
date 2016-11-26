@@ -14,7 +14,9 @@
     "ami_name": "worker {{timestamp}}",
     "vpc_id": "vpc-8f8843eb",
     "subnet_id": "subnet-345ae342",
-    "associate_public_ip_address": "true"
+    "associate_public_ip_address": "true",
+    "ssh_keypair_name": "abhaya-aws",
+    "ssh_private_key_file": "abhaya-aws.pem"
   }],
   "provisioners": [
     {
