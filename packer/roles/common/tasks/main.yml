@@ -50,7 +50,7 @@
       - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"    }
 
   - name: setup timezone
-    command: sudo timedatectl set-timezone Asia/Singapore
+    command: timedatectl set-timezone Asia/Singapore
 
   - name: install ntp
     apt:
