@@ -11,6 +11,7 @@ variable "aws_region"            {}
 variable "bastion_ami"           {}
 variable "bastion_instance_type" {}
 variable "worker_count"          {}
+variable "keyfile"               {}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
@@ -31,12 +32,17 @@ variable "manager_ips" {
   }
 }
 
+resource "aws_key_pair" "keypair" {
+  key_name = "terraform-key"
+  public_key = "${file("${var.keyfile}")}"
+}
+
 resource "aws_instance" "managers" {
   ami                         = "${var.manager_ami}"
   instance_type               = "${var.manager_instance_type}"
   vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_secondary_id}"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${aws_key_pair.keypair.key_name}"
   private_ip                  = "${lookup(var.manager_ips, count.index)}"
   count                       = 3
 
@@ -90,7 +96,7 @@ resource "aws_instance" "workers" {
   instance_type               = "${var.worker_instance_type}"
   vpc_security_group_ids      = ["${module.vpc.cluster_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_secondary_id}"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${aws_key_pair.keypair.key_name}"
   private_ip                  = "${lookup(var.worker_ips, count.index)}"
   count                       = "${var.worker_count}"
   depends_on                  = ["null_resource.manager_setup"]
@@ -119,7 +125,7 @@ resource "aws_instance" "bastion" {
   instance_type               = "${var.bastion_instance_type}"
   vpc_security_group_ids      = ["${module.vpc.bastion_security_group_id}"]
   subnet_id                   = "${module.vpc.subnet_primary_id}"
-  key_name                    = "${var.key_name}"
+  key_name                    = "${aws_key_pair.keypair.key_name}"
   private_ip                  = "10.0.1.254"
   associate_public_ip_address = true
 }
