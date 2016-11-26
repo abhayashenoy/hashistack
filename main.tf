@@ -126,10 +126,6 @@ resource "aws_instance" "bastion" {
   associate_public_ip_address = true
 }
 
-output "ips" {
-  value = "export MANAGER_0_IP=${aws_instance.managers.0.private_ip} MANAGER_1_IP=${aws_instance.managers.1.private_ip} MANAGER_2_IP=${aws_instance.managers.2.private_ip} WORKER_0_IP=${aws_instance.workers.0.private_ip} BASTION_IP=${aws_instance.bastion.0.public_ip}"
-}
-
 resource "aws_alb" "cluster_alb" {
   internal        = false
   security_groups = ["${module.vpc.cluster_security_group_id}"]
@@ -176,6 +172,33 @@ resource "aws_alb_target_group_attachment" "cluster_target_group_attachment" {
   count            = "${var.worker_count}"
 }
 
-output "alb" {
-  value = "export ALB=${aws_alb.cluster_alb.dns_name}"
+data "template_file" "envrc_template" {
+  template = <<EOF
+export ALB=$$alb
+export MANAGER_0_IP=$$manager_0_ip
+export MANAGER_1_IP=$$manager_1_ip
+export MANAGER_2_IP=$$manager_2_ip
+export WORKER_0_IP=$$worker_0_ip
+export BASTION_IP=$$bastion_ip
+EOF
+
+  vars = {
+    alb = "${aws_alb.cluster_alb.dns_name}"
+    manager_0_ip = "${aws_instance.managers.0.private_ip}"
+    manager_1_ip = "${aws_instance.managers.1.private_ip}"
+    manager_2_ip = "${aws_instance.managers.2.private_ip}"
+    worker_0_ip = "${aws_instance.workers.0.private_ip}"
+    bastion_ip = "${aws_instance.bastion.0.public_ip}"
+  }
+}
+
+resource "null_resource" "ips" {
+  triggers {
+    manager_ids = "${join(",", aws_instance.managers.*.id)}"
+    worker_ids = "${join(",", aws_instance.workers.*.id)}"
+  }
+
+  provisioner "local-exec" {
+    command = "echo ${data.template_file.envrc_template.rendered} > .envrc"
+  }
 }
