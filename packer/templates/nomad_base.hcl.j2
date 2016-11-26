@@ -9,9 +9,9 @@ bind_addr = "0.0.0.0"
 # and clients. The IPs can be materialized by Terraform or be replaced by an
 # init script.
 advertise {
-  http = "%%IP%%:4646"
-  rpc  = "%%IP%%:4647"
-  serf = "%%IP%%:4648"
+  http = "%%node-ip%%:4646"
+  rpc  = "%%node-ip%%:4647"
+  serf = "%%node-ip%%:4648"
 }
 
 # Enable debug endpoints.

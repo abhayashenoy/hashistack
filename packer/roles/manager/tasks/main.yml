@@ -7,3 +7,27 @@
   with_items:
     - { src: templates/consul_server.json.j2, dest: "{{ config_dir }}/consul.json"       }
     - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"  }
+
+- get_url:
+    url: "https://github.com/coreos/etcd/releases/download/v3.0.15/etcd-v3.0.15-linux-amd64.tar.gz"
+    dest: /tmp/etcd.tar.gz
+
+- unarchive:
+    src: /tmp/etcd.tar.gz
+    dest: /tmp/
+    copy: no
+
+- command: "{{ item }}"
+  with_items:
+    - "cp /tmp/etcd-v3.0.15-linux-amd64/etcd {{ bin_dir }}"
+    - "cp /tmp/etcd-v3.0.15-linux-amd64/etcdctl {{ bin_dir }}"
+    - "rm -fr /tmp/etcd-v3.0.15-linux-amd64/"
+
+- template:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    owner: root
+    group: root
+  with_items:
+    - { src: templates/etcd.service.j2,       dest: "/etc/systemd/system/etcd.service"   }
+    - { src: templates/etcd.config.j2,        dest: "/etc/default/etcd"                  }

@@ -1,0 +1,14 @@
+[Unit]
+Description=Etcd
+
+[Service]
+EnvironmentFile=-/etc/default/etcd
+ExecStart={{ bin_dir }}/etcd --name ${NAME} --initial-advertise-peer-urls http://${IP}:2380 --listen-peer-urls http://${IP}:2380 --listen-client-urls http://0.0.0.0:2379 --advertise-client-urls http://${IP}:2379 --initial-cluster-token etcd-cluster --initial-cluster ${NAME0}=http://${IP0}:2380,${NAME1}=http://${IP1}:2380,${NAME2}=http://${IP2}:2380 --initial-cluster-state new
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+
+[Install]
+WantedBy=multi-user.target
+Alias=etcd.service
