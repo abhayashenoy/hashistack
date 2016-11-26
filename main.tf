@@ -10,9 +10,7 @@ variable "key_name"              {}
 variable "aws_region"            {}
 variable "bastion_ami"           {}
 variable "bastion_instance_type" {}
-variable "worker_count" {
-  default = 1
-}
+variable "worker_count"          {}
 
 provider "aws" {
   access_key = "${var.aws_access_key}"
