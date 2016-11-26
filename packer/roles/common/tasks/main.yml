@@ -65,4 +65,5 @@
   - name: start ntp server
     service:
       name: ntp
+      enabled: true
       state: started
