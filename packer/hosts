@@ -1,1 +1,0 @@
-52.77.247.62 ansible_connection=ssh ansible_user=ubuntu ansible_ssh_private_key_file=abhaya-aws.pem
