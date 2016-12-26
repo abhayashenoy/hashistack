@@ -76,7 +76,7 @@ resource "aws_key_pair" "keypair" {
 
 resource "aws_instance" "instance" {
   ami                         = "${var.ami}"
-  instance_type               = "t2.nano"
+  instance_type               = "t2.micro"
   vpc_security_group_ids      = ["${aws_security_group.sg.id}"]
   subnet_id                   = "${aws_subnet.primary.id}"
   private_ip                  = "10.0.1.10"
