@@ -36,19 +36,6 @@
       - nomad
       - vault
 
-  - name: setup config files
-    template:
-      src: "{{ item.src }}"
-      dest: "{{ item.dest }}"
-      owner: root
-      group: root
-    with_items:
-      - { src: templates/consul.service.j2,     dest: "/etc/systemd/system/consul.service" }
-      - { src: templates/nomad.service.j2,      dest: "/etc/systemd/system/nomad.service"  }
-      - { src: templates/nomad_base.hcl.j2,     dest: "{{ config_dir }}/nomad/base.hcl"    }
-      - { src: templates/consul_server.json.j2, dest: "{{ config_dir }}/consul.json"       }
-      - { src: templates/nomad_server.hcl.j2,   dest: "{{ config_dir }}/nomad/node.hcl"    }
-
   - name: setup timezone
     command: timedatectl set-timezone Asia/Singapore
 
@@ -61,9 +48,3 @@
     copy:
       src: templates/ntp.conf
       dest: "/etc/ntp.conf"
-
-  - name: start ntp server
-    service:
-      name: ntp
-      enabled: true
-      state: started
