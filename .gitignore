@@ -13,3 +13,6 @@
 
 hosts
 id_rsa*
+ssh.cfg
+ssh_known_hosts
+inventory
