@@ -1,0 +1,3 @@
+---
+- include: managers-playbook.yml
+- include: workers-playbook.yml

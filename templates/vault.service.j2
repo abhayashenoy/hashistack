@@ -1,0 +1,14 @@
+[Unit]
+Description=Vault
+After=consul.service
+
+[Service]
+ExecStart={{ bin_dir }}/vault server -config {{ config_dir }}/vault.hcl
+ExecReload=/bin/kill -HUP $MAINPID
+KillMode=process
+Restart=on-failure
+RestartPreventExitStatus=255
+
+[Install]
+WantedBy=multi-user.target
+Alias=vault.service

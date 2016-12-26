@@ -1,0 +1,13 @@
+---
+- hosts: workers
+  become: true
+  become_user: root
+  vars:
+    - base_dir: "/opt/hashi"
+    - config_dir: "{{ base_dir }}/config"
+    - bin_dir: "{{ base_dir }}/bin"
+    - data_dir: "{{ base_dir }}/data"
+    - pid_dir: "{{ base_dir }}/pid"
+  roles:
+    - common
+    - worker

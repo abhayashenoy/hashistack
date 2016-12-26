@@ -1,0 +1,11 @@
+- name: configure hostname
+  template: src=templates/hostname.j2 dest=/etc/hostname owner=root group=root mode=0644
+
+- name: set hostname
+  command: "hostname {{ hostname }}"
+
+- name: start ntp
+  service: name=ntp state=started enabled=yes
+
+- name: setup nomad base config
+  template: src=templates/nomad_base.hcl.j2 dest={{ config_dir }}/nomad/base.hcl owner=root group=root mode=0644

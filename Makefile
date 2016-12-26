@@ -1,11 +1,16 @@
-.PHONY: plan destroy dot
+.PHONY: plan destroy dot setup
 
 plan: id_rsa
 	terraform plan
 
+setup: apply provision
+
 apply: id_rsa
 	terraform apply
-	direnv allow
+
+provision:
+	ssh -F ssh.cfg bastion ls
+	ansible-playbook -i inventory -vv site.yml
 
 destroy:
 	terraform destroy -force

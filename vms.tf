@@ -5,6 +5,9 @@ resource "aws_instance" "managers" {
   subnet_id                   = "${aws_subnet.private.id}"
   key_name                    = "${aws_key_pair.keypair.key_name}"
   count                       = "${var.manager_count}"
+  tags                        = {
+    Name = "manager-${count.index}"
+  }
 }
 
 resource "aws_instance" "workers" {
@@ -14,6 +17,9 @@ resource "aws_instance" "workers" {
   subnet_id                   = "${aws_subnet.private.id}"
   key_name                    = "${aws_key_pair.keypair.key_name}"
   count                       = "${var.worker_count}"
+  tags                        = {
+    Name = "worker-${count.index}"
+  }
 }
 
 resource "aws_instance" "bastion" {
@@ -23,4 +29,7 @@ resource "aws_instance" "bastion" {
   subnet_id                   = "${aws_subnet.public.id}"
   key_name                    = "${aws_key_pair.keypair.key_name}"
   associate_public_ip_address = true
+  tags                        = {
+    Name = "bastion"
+  }
 }
