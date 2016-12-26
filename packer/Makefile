@@ -19,14 +19,17 @@ worker:
 delete-sgs:
 	aws ec2 describe-security-groups --output json | jq '.SecurityGroups | .[] | select(.Description == "Temporary group for Packer") | .GroupId' | xargs -n1 aws ec2 delete-security-group --group-id
 	
-amis:
+ami-list:
 	aws ec2 describe-images --owner self --output json | jq '.Images | .[] | { id: .ImageId, name: .Name }'
 
-delete-images:
-	aws ec2 delete-images --image-ids $$ARGS
+ami-delete:
+	aws ec2 deregister-image --image-id $$ARGS
 
-delete-snapshots:
-	aws ec2 delete-snapshots --snapshot-ids $$ARGS
+snapshot-list:
+	aws ec2 describe-snapshots --owner self --output json
+
+snapshot-delete:
+	aws ec2 delete-snapshot --snapshot-id $$ARGS
 
 id_rsa id_rsa.pub:
 	ssh-keygen -t rsa -f id_rsa -N ''
