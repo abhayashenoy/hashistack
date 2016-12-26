@@ -14,9 +14,7 @@
     "ami_name": "manager-{{isotime \"2006-01-02-03-04-05\"}}",
     "vpc_id": "vpc-8f8843eb",
     "subnet_id": "subnet-345ae342",
-    "associate_public_ip_address": "true",
-    "ssh_keypair_name": "abhaya-aws",
-    "ssh_private_key_file": "abhaya-aws.pem"
+    "associate_public_ip_address": "true"
   }],
   "provisioners": [
     {
