@@ -12,8 +12,8 @@
     "instance_type": "t2.nano",
     "ssh_username": "ubuntu",
     "ami_name": "manager-{{isotime \"2006-01-02-03-04-05\"}}",
-    "vpc_id": "vpc-8f8843eb",
-    "subnet_id": "subnet-345ae342",
+    "vpc_id": "vpc-71dd7415",
+    "subnet_id": "subnet-c21689b4",
     "associate_public_ip_address": "true"
   }],
   "provisioners": [
