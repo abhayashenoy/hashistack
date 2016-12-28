@@ -11,6 +11,7 @@ apply: id_rsa
 provision:
 	ssh -F ssh.cfg bastion ls
 	ansible-playbook -i inventory -vv site.yml
+	nomad run jobs/fabio.hcl
 
 destroy:
 	terraform destroy -force

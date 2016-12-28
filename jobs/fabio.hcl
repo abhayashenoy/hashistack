@@ -10,15 +10,16 @@ job "fabio" {
     task "fabio" {
       driver = "exec"
       config {
-        command = "fabio"
+        command = "local/fabio-1.3.5-go1.7.4-linux_amd64"
       }
 
       artifact {
-        source = "https://storage.googleapis.com/hashistack/fabio/v1.2.1/fabio"
+        source = "https://github.com/eBay/fabio/releases/download/v1.3.5/fabio-1.3.5-go1.7.4-linux_amd64"
         options {
-          checksum = "sha256:2eea2b36e10a1d5c00dc281542dcd36174d6288c6045b323767b47cfcf24f153"
+          checksum = "sha256:e0d681fcc23e1408485e16e14c35a22865674e021fc17247ecf74ef5465a8fb0"
         }
       }
+
 
       resources {
         cpu = 500
